@@ -1,0 +1,73 @@
+# ---------------------------
+# Node.js
+# ---------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ---------------------------
+# Environment variables (IMPORTANT)
+# ---------------------------
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ---------------------------
+# Build / Production
+# ---------------------------
+dist/
+build/
+
+# ---------------------------
+# Logs
+# ---------------------------
+logs/
+*.log
+
+# ---------------------------
+# OS Files
+# ---------------------------
+.DS_Store
+Thumbs.db
+
+# ---------------------------
+# IDE / Editor Settings
+# ---------------------------
+.vscode/
+.idea/
+*.swp
+
+# ---------------------------
+# React / Vite
+# ---------------------------
+.cache/
+.vite/
+.eslintcache
+
+# ---------------------------
+# Testing
+# ---------------------------
+coverage/
+
+# ---------------------------
+# Uploads / Temp files
+# ---------------------------
+uploads/
+tmp/
+temp/
+
+# ---------------------------
+# Database
+# ---------------------------
+*.sqlite
+*.db
+
+# ---------------------------
+# Cloud / Secrets
+# ---------------------------
+*.pem
+*.key
