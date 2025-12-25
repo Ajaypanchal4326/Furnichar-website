@@ -9,7 +9,7 @@ export const createOrder = async (req, res) => {
     return res.status(400).json({ message: "No order items" });
   }
 
-  // 🔥 GET USER WITH ADDRESS
+  // GET USER WITH ADDRESS
   const user = await User.findById(req.user.id);
 
   if (!user.address || !user.address.address) {
@@ -21,7 +21,7 @@ export const createOrder = async (req, res) => {
   const order = await Order.create({
     user: req.user.id,
     orderItems,
-    shippingAddress: user.address, // 🔥 SNAPSHOT
+    shippingAddress: user.address, 
     paymentMethod,
     totalPrice,
   });

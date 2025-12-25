@@ -25,10 +25,9 @@ import AdminDashboard from "../pages/admin/AdminDashboard";
 import AddProduct from "../pages/admin/AddProduct";
 import AdminProducts from "../pages/admin/AdminProducts";
 import AdminOrders from "../pages/admin/AdminOrders";
+import ForgotPassword from "../pages/ForgotPassword";
 
-// (future)
-// import AdminProducts from "../pages/admin/AdminProducts";
-// import AdminOrders from "../pages/admin/AdminOrders";
+
 
 export default function AppRoutes() {
   return (
@@ -73,6 +72,8 @@ export default function AppRoutes() {
       {/* ================= AUTH ROUTES ================= */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+
 
       {/* ================= ADMIN ROUTES ================= */}
       <Route

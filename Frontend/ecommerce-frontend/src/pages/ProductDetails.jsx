@@ -4,294 +4,367 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchProductById, fetchProducts } from "../features/product/productSlice";
 import { addToCart } from "../features/cart/cartSlice";
 import RelatedProducts from "../components/product/RelatedProducts";
+import { getReviews } from "../services/reviewService";
+import ReviewForm from "../components/review/ReviewForm";
 
 export default function ProductDetails() {
   const { id } = useParams();
   const dispatch = useDispatch();
+
   const [activeTab, setActiveTab] = useState("details");
+  const [reviews, setReviews] = useState([]);
+  const [quantity, setQuantity] = useState(1);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
 
   const { product, products } = useSelector((state) => state.product);
+  
+  const refreshReviews = () => {
+    getReviews(id).then(setReviews);
+  };
 
+  /* =======================
+     FETCH PRODUCT + PRODUCTS
+  ======================== */
   useEffect(() => {
-    dispatch(fetchProductById(id));
-    dispatch(fetchProducts());
+    if (id) {
+      dispatch(fetchProductById(id));
+      dispatch(fetchProducts());
+    }
   }, [dispatch, id]);
 
+  /* =======================
+     FETCH REVIEWS
+  ======================== */
+  useEffect(() => {
+    if (id) {
+      getReviews(id).then(setReviews);
+    }
+  }, [id]);
+
+  /* =======================
+     LOADING STATE
+  ======================== */
   if (!product) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse text-gray-400 text-lg">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="text-gray-600 dark:text-gray-400">Loading...</div>
       </div>
     );
   }
 
+  /* =======================
+     RELATED PRODUCTS
+  ======================== */
   const relatedProducts = products.filter(
     (p) => p.category === product.category && p._id !== product._id
   );
 
-  // Mock reviews data (you can replace with real data from your backend)
-  const reviews = [
-    {
-      id: 1,
-      name: "Aarav Sharma",
-      date: "May 17, 2025",
-      rating: 4.9,
-      comment: "Exceptional quality and design. The attention to detail is remarkable. Highly recommend for anyone looking to elevate their space.",
-    },
-    {
-      id: 2,
-      name: "Priya Patel",
-      date: "May 15, 2025",
-      rating: 4.9,
-      comment: "Absolutely love this product! The craftsmanship is outstanding and it fits perfectly with my modern aesthetic.",
-    },
-  ];
+  /* =======================
+     FORMAT REVIEWS (SAFE)
+  ======================== */
+  const formattedReviews = reviews.map((r) => ({
+    id: r._id,
+    name: r.user?.name || "Anonymous",
+    date: new Date(r.createdAt).toLocaleDateString(),
+    rating: r.rating,
+    comment: r.comment,
+  }));
+
+  /* =======================
+     AVERAGE RATING
+  ======================== */
+  const averageRating = formattedReviews.length > 0
+    ? (formattedReviews.reduce((sum, r) => sum + r.rating, 0) / formattedReviews.length).toFixed(1)
+    : 0;
 
   const tabs = [
     { id: "details", label: "Product Details" },
     { id: "packaging", label: "Packaging" },
-    { id: "shipping", label: "Shipping Information" },
+    { id: "shipping", label: "Shipping" },
   ];
 
+  const handleAddToCart = () => {
+    setIsAddingToCart(true);
+    dispatch(
+      addToCart({
+        _id: product._id,
+        title: product.title,
+        price: product.price,
+        image: product.image,
+        quantity: quantity,
+      })
+    );
+    setTimeout(() => setIsAddingToCart(false), 500);
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      {/* Breadcrumb Navigation */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center gap-2 text-sm">
-            <Link to="/" className="text-gray-500 hover:text-gray-900 transition-colors">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* =======================
+          BREADCRUMB
+      ======================== */}
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+            <Link to="/" className="hover:text-gray-900 dark:hover:text-white">
+              Home
             </Link>
-            <Link to="/" className="text-gray-500 hover:text-gray-900 transition-colors">
-              Catalogue
-            </Link>
-            <span className="text-gray-400">›</span>
-            <Link to={`/category/${product.category}`} className="text-gray-500 hover:text-gray-900 transition-colors">
+            <span>›</span>
+            <span className="hover:text-gray-900 dark:hover:text-white">
               {product.category}
-            </Link>
-            <span className="text-gray-400">›</span>
-            <span className="text-gray-900 font-medium">{product.title}</span>
+            </span>
+            <span>›</span>
+            <span className="font-medium text-gray-900 dark:text-white truncate">
+              {product.title}
+            </span>
           </div>
         </div>
       </div>
 
-      {/* Main Product Section */}
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-6 sm:py-12">
-        <div className="grid lg:grid-cols-2 gap-6 sm:gap-12 items-start">
-          {/* Product Image */}
+      {/* =======================
+          MAIN CONTENT
+      ======================== */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
+          {/* IMAGE */}
           <div>
-            <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-xl sm:shadow-2xl">
-              <div className="aspect-square flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl sm:rounded-2xl overflow-hidden">
-                <img
-                  src={product.image}
-                  alt={product.title}
-                  className="w-full h-full object-contain p-4 sm:p-8 transform hover:scale-105 transition-transform duration-500"
-                />
-              </div>
+            <div className="bg-white dark:bg-gray-800 p-8 rounded-lg border border-gray-200 dark:border-gray-700">
+              <img
+                src={product.image}
+                alt={product.title}
+                className="w-full h-full object-contain"
+              />
             </div>
           </div>
 
-          {/* Product Information */}
-          <div className="space-y-4 sm:space-y-6">
-            {/* Category Badge */}
-            <div className="inline-block">
-              <span className="px-4 py-1.5 bg-gray-900 text-white text-xs font-medium rounded-full">
+          {/* INFO */}
+          <div className="space-y-6">
+            {/* Category & Rating */}
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="inline-block px-3 py-1 bg-black dark:bg-white text-white dark:text-black text-xs font-semibold rounded">
                 {product.category}
               </span>
+              {formattedReviews.length > 0 && (
+                <div className="flex items-center gap-2 text-sm">
+                  <div className="flex">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <span
+                        key={star}
+                        className={star <= Math.round(averageRating) ? "text-gray-900 dark:text-white" : "text-gray-300 dark:text-gray-700"}
+                      >
+                        ★
+                      </span>
+                    ))}
+                  </div>
+                  <span className="text-gray-600 dark:text-gray-400">
+                    {averageRating} ({formattedReviews.length})
+                  </span>
+                </div>
+              )}
             </div>
 
-            {/* Product Title */}
-            <div>
-              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 tracking-tight">
-                {product.title}
-              </h1>
-              
-              {/* Rating */}
-              <div className="flex items-center gap-2 sm:gap-3 mt-3 sm:mt-4">
-                <div className="flex items-center gap-1">
-                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400 fill-current" viewBox="0 0 20 20">
-                    <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
-                  </svg>
-                  <span className="text-base sm:text-lg font-semibold text-gray-900">4.9</span>
-                </div>
-                <span className="text-xs sm:text-sm text-gray-500">(250+ Reviews)</span>
-              </div>
-            </div>
+            {/* Title */}
+            <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white">
+              {product.title}
+            </h1>
 
             {/* Description */}
-            <p className="text-gray-600 text-sm sm:text-base lg:text-lg leading-relaxed">
-              {product.description || "Elevate your experience with this exceptional product. Crafted with sophistication and comfort in mind, this piece seamlessly blends style with functionality. Its sleek silhouette and luxurious design create elegant spaces, while the sturdy frame and ergonomic design ensure support and durability."}
+            <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+              {product.description}
             </p>
 
-            {/* Price Section */}
-            <div className="flex items-baseline gap-3 sm:gap-4 pt-3 sm:pt-4 pb-4 sm:pb-6 border-b border-gray-200">
-              <span className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">₹{product.price}</span>
-              <span className="text-lg sm:text-xl lg:text-2xl text-gray-400 line-through">₹{Math.round(product.price * 1.3)}</span>
-              <span className="px-2 sm:px-3 py-1 bg-red-500 text-white text-xs sm:text-sm font-semibold rounded-full">
-                23% Off
-              </span>
-            </div>
-
-            {/* Stock Status */}
-            <div className="flex items-center gap-2">
-              <div className={`w-2 h-2 rounded-full ${product.stock > 0 ? 'bg-green-500' : 'bg-red-500'}`} />
-              <span className="text-sm font-medium text-gray-700">
-                {product.stock > 0 ? 'In Stock' : 'Out of Stock'}
-              </span>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex gap-3 sm:gap-4 pt-3 sm:pt-4">
-              <button
-                onClick={() =>
-                  dispatch(
-                    addToCart({
-                      _id: product._id,
-                      title: product.title,
-                      price: product.price,
-                      image: product.image,
-                      quantity: 1,
-                    })
-                  )
-                }
-                disabled={product.stock === 0}
-                className="flex-1 bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 px-6 sm:px-8 py-3 sm:py-4 rounded-xl sm:rounded-2xl font-bold text-base sm:text-lg hover:from-yellow-500 hover:to-yellow-600 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed transform hover:scale-105 active:scale-95 transition-all duration-200 shadow-lg hover:shadow-xl"
-              >
-                Add to Cart
-              </button>
-              
-              <button className="px-4 sm:px-6 py-3 sm:py-4 border-2 border-gray-900 rounded-xl sm:rounded-2xl hover:bg-gray-900 hover:text-white transition-all duration-200 group">
-                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-              </button>
-            </div>
-
-            {/* Tabs Section */}
-            <div className="pt-6 sm:pt-8">
-              {/* Tab Navigation */}
-              <div className="flex border-b border-gray-200 overflow-x-auto">
-                {tabs.map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`px-4 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-colors relative whitespace-nowrap ${
-                      activeTab === tab.id
-                        ? "text-gray-900"
-                        : "text-gray-500 hover:text-gray-700"
-                    }`}
-                  >
-                    {tab.label}
-                    {activeTab === tab.id && (
-                      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-900" />
-                    )}
-                  </button>
-                ))}
-              </div>
-
-              {/* Tab Content */}
-              <div className="py-4 sm:py-6">
-                {activeTab === "details" && (
-                  <div className="space-y-4 sm:space-y-6">
-                    <p className="text-gray-600 text-sm sm:text-base leading-relaxed">
-                      Indulge in the epitome of our seating luxury with the {product.title}. 
-                      Crafted with meticulous attention to detail and a focus on both style 
-                      and comfort, this exquisite piece is designed to elevate your space 
-                      or kitchen island to new heights of sophistication.
-                    </p>
-                    
-                    {/* Specifications */}
-                    <div className="grid md:grid-cols-2 gap-4 sm:gap-6 pt-3 sm:pt-4">
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-2">
-                          <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                          </svg>
-                          <div>
-                            <p className="text-xs text-gray-500">Size</p>
-                            <p className="font-medium text-gray-900 text-sm sm:text-base">Standard</p>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-2">
-                          <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                          </svg>
-                          <div>
-                            <p className="text-xs text-gray-500">Material</p>
-                            <p className="font-medium text-gray-900 text-sm sm:text-base">Premium Quality</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
-                {activeTab === "packaging" && (
-                  <div className="text-gray-600 text-sm sm:text-base leading-relaxed">
-                    <p>Your product will arrive in premium packaging designed to protect your purchase during shipping. We use eco-friendly materials whenever possible.</p>
-                  </div>
-                )}
-                
-                {activeTab === "shipping" && (
-                  <div className="text-gray-600 text-sm sm:text-base leading-relaxed space-y-2 sm:space-y-3">
-                    <p>• Free shipping on orders over ₹999</p>
-                    <p>• Standard delivery: 5-7 business days</p>
-                    <p>• Express delivery available at checkout</p>
-                    <p>• Easy 30-day returns</p>
-                  </div>
-                )}
+            {/* Price */}
+            <div className="py-4 border-y border-gray-200 dark:border-gray-700">
+              <div className="flex items-baseline gap-3">
+                <span className="text-4xl font-bold text-gray-900 dark:text-white">
+                  ₹{product.price}
+                </span>
+                <span className="text-lg text-gray-400 dark:text-gray-600 line-through">
+                  ₹{Math.round(product.price * 1.3)}
+                </span>
+                <span className="px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white text-sm font-semibold rounded">
+                  23% OFF
+                </span>
               </div>
             </div>
 
-            {/* Reviews Section */}
-            <div className="pt-6 sm:pt-8 border-t border-gray-200">
-              <div className="flex items-center justify-between mb-4 sm:mb-6">
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Reviews & Rating</h2>
-                <button className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm font-medium text-gray-900 hover:text-gray-600 transition-colors">
-                  View All
-                  <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
+            {/* Quantity */}
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-gray-900 dark:text-white uppercase">
+                Quantity
+              </label>
+              <div className="flex items-center border border-gray-300 dark:border-gray-700 rounded-lg w-fit">
+                <button
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-900 dark:text-white font-semibold"
+                >
+                  −
+                </button>
+                <span className="px-6 py-2 font-semibold text-gray-900 dark:text-white border-x border-gray-300 dark:border-gray-700">
+                  {quantity}
+                </span>
+                <button
+                  onClick={() => setQuantity(quantity + 1)}
+                  className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-900 dark:text-white font-semibold"
+                >
+                  +
                 </button>
               </div>
-
-              {/* Reviews List */}
-              <div className="space-y-4 sm:space-y-6">
-                {reviews.map((review) => (
-                  <div key={review.id} className="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-sm border border-gray-100">
-                    <div className="flex items-start justify-between mb-2 sm:mb-3">
-                      <div className="flex items-center gap-2 sm:gap-3">
-                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-gray-700 to-gray-900 rounded-full flex items-center justify-center text-white text-sm sm:text-base font-semibold">
-                          {review.name.charAt(0)}
-                        </div>
-                        <div>
-                          <p className="font-semibold text-gray-900 text-sm sm:text-base">{review.name}</p>
-                          <p className="text-xs text-gray-500">{review.date}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <svg className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-400 fill-current" viewBox="0 0 20 20">
-                          <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
-                        </svg>
-                        <span className="text-xs sm:text-sm font-semibold text-gray-900">{review.rating}</span>
-                      </div>
-                    </div>
-                    <p className="text-gray-600 text-sm sm:text-base leading-relaxed">{review.comment}</p>
-                  </div>
-                ))}
-              </div>
             </div>
+
+            {/* Add to Cart */}
+            <button
+              onClick={handleAddToCart}
+              disabled={isAddingToCart}
+              className={`w-full py-4 rounded-lg font-semibold transition-colors ${
+                isAddingToCart
+                  ? "bg-gray-400 dark:bg-gray-700 text-white cursor-not-allowed"
+                  : "bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-100"
+              }`}
+            >
+              {isAddingToCart ? "Adding..." : "Add to Cart"}
+            </button>
           </div>
         </div>
 
-        {/* Related Products */}
+        {/* =======================
+            TABS
+        ======================== */}
+        <div className="mt-12">
+          <div className="flex border-b border-gray-200 dark:border-gray-700">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-6 py-3 font-medium transition-colors relative ${
+                  activeTab === tab.id
+                    ? "text-gray-900 dark:text-white"
+                    : "text-gray-500 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                }`}
+              >
+                {tab.label}
+                {activeTab === tab.id && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-black dark:bg-white"></div>
+                )}
+              </button>
+            ))}
+          </div>
+
+          <div className="py-6 bg-white dark:bg-gray-800 px-6 rounded-b-lg border border-t-0 border-gray-200 dark:border-gray-700">
+            {activeTab === "details" && (
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                {product.description}
+              </p>
+            )}
+            {activeTab === "packaging" && (
+              <div className="space-y-3">
+                <p className="text-gray-700 dark:text-gray-300">
+                  <strong>Eco-Friendly Packaging:</strong> We use sustainable, recyclable materials to minimize environmental impact.
+                </p>
+                <p className="text-gray-600 dark:text-gray-400">
+                  All products are carefully wrapped to ensure they arrive in perfect condition.
+                </p>
+              </div>
+            )}
+            {activeTab === "shipping" && (
+              <div className="space-y-3">
+                <p className="text-gray-700 dark:text-gray-300">
+                  <strong>Fast Delivery:</strong> Standard delivery in 5–7 business days.
+                </p>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Express shipping options available at checkout for faster delivery.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* =======================
+            REVIEWS
+        ======================== */}
+        <div className="mt-12">
+          <div className="mb-6 flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+                Reviews & Ratings
+              </h2>
+              {formattedReviews.length > 0 && (
+                <p className="text-gray-600 dark:text-gray-400 text-sm">
+                  {formattedReviews.length} customer review{formattedReviews.length !== 1 ? 's' : ''}
+                </p>
+              )}
+            </div>
+            {formattedReviews.length > 0 && (
+              <div className="text-center p-4 bg-gray-100 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                <div className="text-3xl font-bold text-gray-900 dark:text-white">
+                  {averageRating}
+                </div>
+                <div className="flex justify-center mt-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <span
+                      key={star}
+                      className={star <= Math.round(averageRating) ? "text-gray-900 dark:text-white" : "text-gray-300 dark:text-gray-700"}
+                    >
+                      ★
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <ReviewForm productId={id} onReviewAdded={refreshReviews} />
+
+          {formattedReviews.length > 0 ? (
+            <div className="mt-6 space-y-4">
+              {formattedReviews.map((review) => (
+                <div
+                  key={review.id}
+                  className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-full bg-gray-900 dark:bg-white flex items-center justify-center text-white dark:text-black font-semibold">
+                        {review.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-900 dark:text-white">
+                          {review.name}
+                        </p>
+                        <p className="text-sm text-gray-500 dark:text-gray-500">
+                          {review.date}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded border border-gray-200 dark:border-gray-700">
+                      <span className="text-gray-900 dark:text-white">★</span>
+                      <span className="font-semibold text-gray-900 dark:text-white">
+                        {review.rating}
+                      </span>
+                    </div>
+                  </div>
+                  <p className="mt-3 text-gray-700 dark:text-gray-300">
+                    {review.comment}
+                  </p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="mt-6 text-center py-12 bg-gray-100 dark:bg-gray-800 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-700">
+              <p className="text-gray-600 dark:text-gray-400 font-medium">
+                No reviews yet. Be the first to share your experience!
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* =======================
+            RELATED PRODUCTS
+        ======================== */}
         {relatedProducts.length > 0 && (
-          <div className="mt-12 sm:mt-20">
+          <div className="mt-12">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+              You May Also Like
+            </h2>
             <RelatedProducts products={relatedProducts} />
           </div>
         )}
@@ -299,78 +372,3 @@ export default function ProductDetails() {
     </div>
   );
 }
-
-
-
-// import { useEffect } from "react";
-// import { useParams } from "react-router-dom";
-// import { useDispatch, useSelector } from "react-redux";
-// import { fetchProductById, fetchProducts } from "../features/product/productSlice";
-// import { addToCart } from "../features/cart/cartSlice";
-// import RelatedProducts from "../components/product/RelatedProducts";
-
-// export default function ProductDetails() {
-//   const { id } = useParams();
-//   const dispatch = useDispatch();
-
-//   const { product, products } = useSelector((state) => state.product);
-
-//   useEffect(() => {
-//     dispatch(fetchProductById(id));
-//     dispatch(fetchProducts());
-//   }, [dispatch, id]);
-
-//   if (!product) return <p>Loading...</p>;
-
-//   const relatedProducts = products.filter(
-//     (p) => p.category === product.category && p._id !== product._id
-//   );
-
-//   return (
-//     <div className="max-w-6xl mx-auto px-4 py-10">
-//       <div className="grid md:grid-cols-2 gap-8">
-//         {/* IMAGE */}
-//         <img
-//           src={product.image}
-//           alt={product.title}
-//           className="w-full h-96 object-cover rounded-xl"
-//         />
-
-//         {/* DETAILS */}
-//         <div>
-//           <h1 className="text-3xl font-bold">{product.title}</h1>
-//           <p className="text-xl text-green-600 mt-2">₹{product.price}</p>
-
-//           <p className="mt-4 text-gray-700">{product.description}</p>
-
-//           <p className="mt-3">
-//             Stock:{" "}
-//             <span className="font-semibold">
-//               {product.stock > 0 ? "Available" : "Out of stock"}
-//             </span>
-//           </p>
-
-//           <button
-//             onClick={() =>
-//               dispatch(
-//                 addToCart({
-//                   _id: product._id,
-//                   title: product.title,
-//                   price: product.price,
-//                   image: product.image,
-//                   quantity: 1,
-//                 })
-//               )
-//             }
-//             className="mt-6 bg-black text-white px-6 py-3 rounded-lg"
-//           >
-//             Add to Cart
-//           </button>
-//         </div>
-//       </div>
-
-//       {/* RELATED PRODUCTS */}
-//       <RelatedProducts products={relatedProducts} />
-//     </div>
-//   );
-// }

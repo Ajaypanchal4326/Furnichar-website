@@ -18,21 +18,21 @@ router.get("/:id", getProductById);
 
 // ================= ADMIN =================
 
-// CREATE PRODUCT (WITH IMAGE)
+// CREATE PRODUCT
 router.post(
   "/",
   protect,
   adminOnly,
-  upload.single("image"), // 🔥 REQUIRED
+  upload.single("image"), 
   createProduct
 );
 
-// UPDATE PRODUCT (OPTIONAL IMAGE UPDATE)
+// UPDATE PRODUCT
 router.put(
   "/:id",
   protect,
   adminOnly,
-  upload.single("image"), // 🔥 OPTIONAL but RECOMMENDED
+  upload.single("image"), 
   updateProduct
 );
 

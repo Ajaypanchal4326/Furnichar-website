@@ -155,36 +155,45 @@ export default function Home() {
               </div>
 
               {/* Designer Card */}
-              <div 
-                className="absolute bottom-0 right-0 bg-gray-800 dark:bg-gray-700 text-white w-64 sm:w-72 p-4 sm:p-6 shadow-xl"
-                style={{
-                  opacity: isVisible('hero-cards') ? 1 : 0,
-                  transform: isVisible('hero-cards') ? 'translateY(0)' : 'translateY(40px)',
-                  transition: 'all 0.8s ease-out 0.6s'
-                }}
-              >
-                <div className="flex items-start gap-3 sm:gap-4">
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 rounded-full overflow-hidden flex-shrink-0">
-                    <img 
-                      src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80" 
-                      alt="Nico Williams II"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-semibold mb-1 text-sm sm:text-base">Nico Williams II</div>
-                    <div className="text-xs sm:text-sm text-gray-300 mb-2 sm:mb-3">Interior Designer</div>
-                    <div className="flex items-center gap-2 text-xs sm:text-sm">
-                      <div className="flex -space-x-2">
-                        <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gray-600 border-2 border-gray-800"></div>
-                        <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gray-600 border-2 border-gray-800"></div>
-                        <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gray-600 border-2 border-gray-800"></div>
-                      </div>
-                      <span className="text-gray-300 truncate">120k+ items sold</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <div
+  className="absolute bottom-0 right-0 bg-gray-100 dark:bg-gray-500 w-64 sm:w-72 p-4 sm:p-6 shadow-xl border border-gray-200"
+  style={{
+    opacity: isVisible('hero-cards') ? 1 : 0,
+    transform: isVisible('hero-cards') ? 'translateY(0)' : 'translateY(40px)',
+    transition: 'all 0.8s ease-out 0.6s',
+  }}
+>
+  <div className="flex items-start gap-4">
+    {/* Product Image (SQUARE) */}
+    <div className="w-16 h-16 sm:w-20 sm:h-20 overflow-hidden flex-shrink-0 bg-gray-100 shadow-sm">
+      <img
+        src="https://images.unsplash.com/photo-1567016432779-094069958ea5?w=300&q=80"
+        alt="Single Comfort Chair"
+        className="w-full h-full object-cover"
+      />
+    </div>
+
+    {/* Product Info */}
+    <div className="flex-1 min-w-0">
+      <div className="font-semibold mb-1 text-sm sm:text-base text-gray-900">
+        Modern Comfort Sofa
+      </div>
+
+      <div className="text-xs sm:text-sm text-gray-500 mb-2">
+        Modern & stylish furniture
+      </div>
+
+      <div className="flex items-center justify-between text-xs sm:text-sm">
+        <span className="font-bold text-gray-900">$320</span>
+
+        <span className="px-2 py-1 bg-gray-100 text-gray-600 text-[10px]">
+          Bestseller
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
 
               {/* Small Decoration Card */}
               <div 
@@ -300,10 +309,12 @@ export default function Home() {
                 Striving for excellence in every detail, we are committed to revolutionizing the online shopping experience. Our ambition is to set new standards in quality, customer satisfaction, and sustainability, ensuring that every purchase from our platform is a step towards a brighter, more innovative future.
               </p>
 
-              <button className="px-8 py-4 bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-medium rounded-none hover:bg-gray-800 dark:hover:bg-gray-100 transition-all duration-300 inline-flex items-center gap-2 group">
-                Learn more
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </button>
+              <Link to="/about">
+  <button className="px-8 py-4 bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-medium rounded-none hover:bg-gray-800 dark:hover:bg-gray-100 transition-all duration-300 inline-flex items-center gap-2 group">
+    Learn more
+    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+  </button>
+</Link>
             </div>
           </div>
         </div>

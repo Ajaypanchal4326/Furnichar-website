@@ -1,18 +1,50 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axiosInstance from "../../services/axiosInstance";
 
-/* ================= REGISTER ================= */
-export const registerUser = createAsyncThunk(
-  "auth/register",
+/* ================= REGISTER – SEND OTP ================= */
+export const registerRequest = createAsyncThunk(
+  "auth/register-request",
   async (data, { rejectWithValue }) => {
     try {
-      const res = await axiosInstance.post("/auth/register", data);
+      const res = await axiosInstance.post("/auth/register-request", data);
       return res.data;
     } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Register failed");
+      return rejectWithValue(
+        err.response?.data?.message || "OTP send failed"
+      );
     }
   }
 );
+
+/* ================= REGISTER – VERIFY OTP ================= */
+export const registerVerify = createAsyncThunk(
+  "auth/register-verify",
+  async (data, { rejectWithValue }) => {
+    try {
+      const res = await axiosInstance.post("/auth/register-verify", data);
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.message || "OTP verification failed"
+      );
+    }
+  }
+);
+
+export const resendOtp = createAsyncThunk(
+  "auth/resend-otp",
+  async (email, { rejectWithValue }) => {
+    try {
+      const res = await axiosInstance.post("/auth/resend-otp", { email });
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.message || "Resend failed"
+      );
+    }
+  }
+);
+
 
 /* ================= LOGIN ================= */
 export const loginUser = createAsyncThunk(
@@ -33,6 +65,7 @@ const authSlice = createSlice({
     user: JSON.parse(localStorage.getItem("user")) || null,
     loading: false,
     error: null,
+    otpSent: false,
   },
   reducers: {
     logout(state) {
@@ -40,23 +73,39 @@ const authSlice = createSlice({
       localStorage.removeItem("user");
       localStorage.removeItem("token");
     },
+    resetOtp(state) {
+      state.otpSent = false;
+    },
   },
   extraReducers: (builder) => {
     builder
-      // REGISTER
-      .addCase(registerUser.pending, (state) => {
+      // REGISTER REQUEST
+      .addCase(registerRequest.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(registerUser.fulfilled, (state, action) => {
+      .addCase(registerRequest.fulfilled, (state) => {
         state.loading = false;
-        state.user = action.payload;
-        localStorage.setItem("user", JSON.stringify(action.payload));
-        if (action.payload.token) {
-          localStorage.setItem("token", action.payload.token);
-        }
+        state.otpSent = true;
       })
-      .addCase(registerUser.rejected, (state, action) => {
+      .addCase(registerRequest.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // REGISTER VERIFY
+      .addCase(registerVerify.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(registerVerify.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload.user;
+        state.otpSent = false;
+        localStorage.setItem("user", JSON.stringify(action.payload.user));
+        localStorage.setItem("token", action.payload.token);
+      })
+      .addCase(registerVerify.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
@@ -68,11 +117,9 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = action.payload;
-        localStorage.setItem("user", JSON.stringify(action.payload));
-        if (action.payload.token) {
-          localStorage.setItem("token", action.payload.token);
-        }
+        state.user = action.payload.user;
+        localStorage.setItem("user", JSON.stringify(action.payload.user));
+        localStorage.setItem("token", action.payload.token);
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
@@ -81,5 +128,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout } = authSlice.actions;
+export const { logout, resetOtp } = authSlice.actions;
 export default authSlice.reducer;

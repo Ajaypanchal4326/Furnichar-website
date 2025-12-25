@@ -2,12 +2,16 @@ import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
+    name: String,
+    email: { type: String, unique: true },
+    password: String,
     role: { type: String, default: "user" },
 
-    // 🔥 DELIVERY DETAILS
+    otp: String,
+otpExpiresAt: Date,
+otpAttempts: { type: Number, default: 0 },
+isVerified: { type: Boolean, default: false },
+
     address: {
       address: String,
       city: String,
@@ -18,5 +22,6 @@ const userSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
 
 export default mongoose.model("User", userSchema);

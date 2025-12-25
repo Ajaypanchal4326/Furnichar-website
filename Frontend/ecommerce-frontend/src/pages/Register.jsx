@@ -1,75 +1,415 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { registerUser } from "../features/auth/authSlice";
+import {
+  registerRequest,
+  registerVerify,
+  resendOtp,
+} from "../features/auth/authSlice";
 import { Navigate, Link } from "react-router-dom";
 
 export default function Register() {
   const dispatch = useDispatch();
-  const { user, loading, error } = useSelector((state) => state.auth);
+  const { user, loading, error, otpSent } = useSelector(
+    (state) => state.auth
+  );
 
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    otp: "",
+  });
 
-  const submitHandler = (e) => {
-    e.preventDefault();
-    dispatch(registerUser({ name, email, password }));
+  const [showPassword, setShowPassword] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
+  const [theme, setTheme] = useState("light");
+
+  // Initialize theme based on browser preference
+  useEffect(() => {
+    const getInitialTheme = () => {
+      const savedTheme = localStorage.getItem("theme");
+      if (savedTheme) {
+        return savedTheme;
+      }
+
+      if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+        return "dark";
+      }
+
+      return "light";
+    };
+
+    const initialTheme = getInitialTheme();
+    setTheme(initialTheme);
+    applyTheme(initialTheme);
+
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleThemeChange = (e) => {
+      const savedTheme = localStorage.getItem("theme");
+      if (!savedTheme) {
+        const newTheme = e.matches ? "dark" : "light";
+        setTheme(newTheme);
+        applyTheme(newTheme);
+      }
+    };
+
+    mediaQuery.addEventListener("change", handleThemeChange);
+
+    return () => {
+      mediaQuery.removeEventListener("change", handleThemeChange);
+    };
+  }, []);
+
+  const applyTheme = (newTheme) => {
+    const root = document.documentElement;
+    if (newTheme === "dark") {
+      root.classList.add("dark");
+    } else {
+      root.classList.remove("dark");
+    }
   };
 
-  if (user) {
-    return <Navigate to="/" />;
-  }
+  // ⏱ Resend cooldown timer
+  useEffect(() => {
+    if (cooldown === 0) return;
+    const timer = setInterval(() => {
+      setCooldown((prev) => prev - 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [cooldown]);
+
+  // 📧 Email validation
+  const isEmailValid = (email) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+  const isFormValid =
+    form.name.trim() &&
+    isEmailValid(form.email) &&
+    form.password.length >= 6;
+
+  const submitRegister = (e) => {
+    e.preventDefault();
+
+    if (!isFormValid) return;
+
+    dispatch(
+      registerRequest({
+        name: form.name,
+        email: form.email,
+        password: form.password,
+      })
+    );
+  };
+
+  const submitOtp = (e) => {
+    e.preventDefault();
+    dispatch(registerVerify({ email: form.email, otp: form.otp }));
+  };
+
+  const handleResend = () => {
+    dispatch(resendOtp(form.email));
+    setCooldown(60); // 60s cooldown
+  };
+
+  if (user) return <Navigate to="/" />;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <form
-        onSubmit={submitHandler}
-        className="bg-white p-6 rounded w-80"
-      >
-        <h2 className="text-xl font-bold mb-4 text-center">
-          Register
-        </h2>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 px-4 transition-colors duration-300">
+      <div className="w-full max-w-md">
+        {/* Main Card */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 sm:p-8 border border-gray-100 dark:border-gray-700 transition-colors duration-300">
+          
+          {/* Logo/Brand */}
+          <div className="flex justify-center mb-4">
+            <div className="w-14 h-14 bg-gradient-to-br from-black via-gray-800 to-black dark:from-white dark:via-gray-200 dark:to-white rounded-xl flex items-center justify-center shadow-lg">
+              <svg 
+                className="w-8 h-8 text-white dark:text-gray-900" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth={2} 
+                  d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" 
+                />
+              </svg>
+            </div>
+          </div>
 
-        {error && (
-          <p className="text-red-500 text-sm mb-2">{error}</p>
-        )}
+          {/* Header */}
+          <div className="text-center mb-5">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+              {otpSent ? "Verify Your Email" : "Create Account"}
+            </h1>
+            <p className="text-gray-500 dark:text-gray-400 text-sm">
+              {otpSent 
+                ? "Enter the OTP sent to your email" 
+                : "Join ShopEase today"}
+            </p>
+          </div>
 
-        <input
-          className="border p-2 w-full mb-3"
-          placeholder="Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
+          {/* Error Alert */}
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 rounded flex items-start gap-2">
+              <svg 
+                className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" 
+                fill="currentColor" 
+                viewBox="0 0 20 20"
+              >
+                <path 
+                  fillRule="evenodd" 
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" 
+                  clipRule="evenodd" 
+                />
+              </svg>
+              <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
+            </div>
+          )}
 
-        <input
-          className="border p-2 w-full mb-3"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
+          {/* FORM */}
+          <form onSubmit={otpSent ? submitOtp : submitRegister} className="space-y-4">
 
-        <input
-          className="border p-2 w-full mb-3"
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+            {!otpSent && (
+              <>
+                {/* Name Field */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+                    Full Name
+                  </label>
+                  <div className="relative group">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg 
+                        className="h-5 w-5 text-gray-400 dark:text-gray-500 group-focus-within:text-black dark:group-focus-within:text-white transition-colors" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                      >
+                        <path 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          strokeWidth={2} 
+                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" 
+                        />
+                      </svg>
+                    </div>
+                    <input
+                      type="text"
+                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent outline-none transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 bg-white dark:bg-gray-700"
+                      placeholder="John Doe"
+                      value={form.name}
+                      onChange={(e) => setForm({ ...form, name: e.target.value })}
+                      required
+                    />
+                  </div>
+                </div>
 
-        <button
-          disabled={loading}
-          className="w-full bg-black text-white py-2 rounded"
-        >
-          {loading ? "Creating..." : "Create Account"}
-        </button>
+                {/* Email Field */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+                    Email
+                  </label>
+                  <div className="relative group">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg 
+                        className="h-5 w-5 text-gray-400 dark:text-gray-500 group-focus-within:text-black dark:group-focus-within:text-white transition-colors" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                      >
+                        <path 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          strokeWidth={2} 
+                          d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" 
+                        />
+                      </svg>
+                    </div>
+                    <input
+                      type="email"
+                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent outline-none transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 bg-white dark:bg-gray-700"
+                      placeholder="you@example.com"
+                      value={form.email}
+                      onChange={(e) => setForm({ ...form, email: e.target.value })}
+                      required
+                    />
+                  </div>
+                  {!isEmailValid(form.email) && form.email && (
+                    <p className="text-xs text-red-500 dark:text-red-400 mt-1.5 ml-1">
+                      Please enter a valid email address
+                    </p>
+                  )}
+                </div>
 
-        <p className="text-sm text-center mt-3">
-          Already have an account?{" "}
-          <Link to="/login" className="underline">
-            Login
-          </Link>
+                {/* Password Field */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+                    Password
+                  </label>
+                  <div className="relative group">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg 
+                        className="h-5 w-5 text-gray-400 dark:text-gray-500 group-focus-within:text-black dark:group-focus-within:text-white transition-colors" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                      >
+                        <path 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          strokeWidth={2} 
+                          d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" 
+                        />
+                      </svg>
+                    </div>
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      className="w-full pl-10 pr-11 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent outline-none transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 bg-white dark:bg-gray-700"
+                      placeholder="Minimum 6 characters"
+                      value={form.password}
+                      onChange={(e) => setForm({ ...form, password: e.target.value })}
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                    >
+                      {showPassword ? (
+                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                        </svg>
+                      ) : (
+                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                  {form.password && form.password.length < 6 && (
+                    <p className="text-xs text-red-500 dark:text-red-400 mt-1.5 ml-1">
+                      Password must be at least 6 characters
+                    </p>
+                  )}
+                </div>
+              </>
+            )}
+
+            {otpSent && (
+              <>
+                {/* OTP Field */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+                    One-Time Password
+                  </label>
+                  <div className="relative group">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg 
+                        className="h-5 w-5 text-gray-400 dark:text-gray-500 group-focus-within:text-black dark:group-focus-within:text-white transition-colors" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                      >
+                        <path 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          strokeWidth={2} 
+                          d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" 
+                        />
+                      </svg>
+                    </div>
+                    <input
+                      type="text"
+                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent outline-none transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 tracking-widest text-center text-lg font-semibold bg-white dark:bg-gray-700"
+                      placeholder="000000"
+                      value={form.otp}
+                      onChange={(e) => setForm({ ...form, otp: e.target.value })}
+                      maxLength={6}
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Email Display */}
+                <div className="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-3 flex items-center gap-2">
+                  <svg className="w-5 h-5 text-gray-500 dark:text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">
+                    OTP sent to <span className="font-semibold text-gray-900 dark:text-white">{form.email}</span>
+                  </p>
+                </div>
+
+                {/* Resend OTP */}
+                <div className="text-center">
+                  <button
+                    type="button"
+                    onClick={handleResend}
+                    disabled={cooldown > 0}
+                    className="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors disabled:text-gray-400 dark:disabled:text-gray-600 disabled:cursor-not-allowed"
+                  >
+                    {cooldown > 0
+                      ? `Resend OTP in ${cooldown}s`
+                      : "Didn't receive OTP? Resend"}
+                  </button>
+                </div>
+              </>
+            )}
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={loading || (!otpSent && !isFormValid)}
+              className="w-full bg-gradient-to-r from-black to-gray-800 dark:from-white dark:to-gray-200 text-white dark:text-gray-900 py-2.5 rounded-lg font-semibold hover:from-gray-800 hover:to-black dark:hover:from-gray-200 dark:hover:to-white transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+            >
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                  </svg>
+                  {otpSent ? "Verifying..." : "Processing..."}
+                </span>
+              ) : (
+                otpSent ? "Verify & Create Account" : "Send OTP"
+              )}
+            </button>
+          </form>
+
+          {/* Login Link */}
+          {!otpSent && (
+            <p className="mt-5 text-center text-sm text-gray-600 dark:text-gray-400">
+              Already have an account?{" "}
+              <Link to="/login" className="font-semibold text-black dark:text-white hover:underline">
+                Sign in
+              </Link>
+            </p>
+          )}
+
+          {/* Back to Form Link (for OTP step) */}
+          {otpSent && (
+            <p className="mt-5 text-center text-sm text-gray-600 dark:text-gray-400">
+              Wrong email?{" "}
+              <button 
+                onClick={() => window.location.reload()} 
+                className="font-semibold text-black dark:text-white hover:underline"
+              >
+                Start over
+              </button>
+            </p>
+          )}
+        </div>
+
+        {/* Footer */}
+        <p className="mt-4 text-center text-xs text-gray-500 dark:text-gray-400">
+          By creating an account, you agree to ShopEase's{" "}
+          <a href="#" className="underline hover:text-gray-700 dark:hover:text-gray-300">Terms</a>
+          {" "}and{" "}
+          <a href="#" className="underline hover:text-gray-700 dark:hover:text-gray-300">Privacy Policy</a>
         </p>
-      </form>
+      </div>
     </div>
   );
 }

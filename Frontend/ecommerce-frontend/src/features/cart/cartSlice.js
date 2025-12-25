@@ -27,7 +27,7 @@ const cartSlice = createSlice({
       localStorage.setItem("cartItems", JSON.stringify(state.items));
     },
 
-    // ✅ FIXED: updateQuantity
+    // FIXED: updateQuantity
     updateQuantity(state, action) {
       const { _id, quantity } = action.payload;
 
@@ -37,7 +37,7 @@ const cartSlice = createSlice({
         item.quantity = quantity;
       }
 
-      // 🔥 IMPORTANT: sync with localStorage
+      // IMPORTANT: sync with localStorage
       localStorage.setItem("cartItems", JSON.stringify(state.items));
     },
 

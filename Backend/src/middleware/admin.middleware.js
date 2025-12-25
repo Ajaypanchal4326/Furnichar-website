@@ -2,9 +2,7 @@ import Product from "../models/Product.model.js";
 import Order from "../models/Order.model.js";
 import User from "../models/User.model.js";
 
-/* ===============================
-   ADMIN MIDDLEWARE
-================================ */
+// ADMIN MIDDLEWARE
 export const adminOnly = (req, res, next) => {
   if (!req.user || req.user.role !== "admin") {
     return res.status(403).json({ message: "Admin access only" });
@@ -12,15 +10,11 @@ export const adminOnly = (req, res, next) => {
   next();
 };
 
-/* ===============================
-   ADMIN ANALYTICS CONTROLLER
-================================ */
+// ADMIN ANALYTICS CONTROLLER
 export const getAdminAnalytics = async (req, res) => {
   try {
-    // Total products
     const totalProducts = await Product.countDocuments();
 
-    // Total orders
     const totalOrders = await Order.countDocuments();
 
     // Total revenue (only paid orders)
