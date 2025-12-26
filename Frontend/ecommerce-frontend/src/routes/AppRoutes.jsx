@@ -18,6 +18,7 @@ import Profile from "../pages/Profile";
 import NotFound from "../pages/NotFound";
 import MyOrders from "../pages/MyOrders";
 import About from "../pages/About";
+import FAQ from "../pages/FAQ";
 
 
 // ADMIN PAGES
@@ -39,6 +40,7 @@ export default function AppRoutes() {
         <Route path="/product/:id" element={<ProductDetails />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/about" element={<About />} />
+        <Route path="/faq" element={<FAQ />} />
 
         {/* USER PROTECTED */}
         <Route
@@ -88,11 +90,6 @@ export default function AppRoutes() {
         <Route path="add-product" element={<AddProduct />} />
         <Route path="products" element={<AdminProducts />} />
         <Route path="orders" element={<AdminOrders />} />
-
-
-        {/* FUTURE ADMIN ROUTES */}
-        {/* <Route path="products" element={<AdminProducts />} /> */}
-        {/* <Route path="orders" element={<AdminOrders />} /> */}
       </Route>
 
       {/* ================= 404 ================= */}
