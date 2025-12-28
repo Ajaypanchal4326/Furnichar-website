@@ -6,6 +6,8 @@ import { addToCart } from "../features/cart/cartSlice";
 import RelatedProducts from "../components/product/RelatedProducts";
 import { getReviews } from "../services/reviewService";
 import ReviewForm from "../components/review/ReviewForm";
+import RecommendedProducts from "../components/product/RecommendedProducts";
+
 
 export default function ProductDetails() {
   const { id } = useParams();
@@ -17,7 +19,7 @@ export default function ProductDetails() {
   const [isAddingToCart, setIsAddingToCart] = useState(false);
 
   const { product, products } = useSelector((state) => state.product);
-  
+
   const refreshReviews = () => {
     getReviews(id).then(setReviews);
   };
@@ -51,6 +53,9 @@ export default function ProductDetails() {
       </div>
     );
   }
+
+
+
 
   /* =======================
      RELATED PRODUCTS
@@ -215,11 +220,10 @@ export default function ProductDetails() {
             <button
               onClick={handleAddToCart}
               disabled={isAddingToCart}
-              className={`w-full py-4 rounded-lg font-semibold transition-colors ${
-                isAddingToCart
-                  ? "bg-gray-400 dark:bg-gray-700 text-white cursor-not-allowed"
-                  : "bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-100"
-              }`}
+              className={`w-full py-4 rounded-lg font-semibold transition-colors ${isAddingToCart
+                ? "bg-gray-400 dark:bg-gray-700 text-white cursor-not-allowed"
+                : "bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-100"
+                }`}
             >
               {isAddingToCart ? "Adding..." : "Add to Cart"}
             </button>
@@ -235,11 +239,10 @@ export default function ProductDetails() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-6 py-3 font-medium transition-colors relative ${
-                  activeTab === tab.id
-                    ? "text-gray-900 dark:text-white"
-                    : "text-gray-500 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
-                }`}
+                className={`px-6 py-3 font-medium transition-colors relative ${activeTab === tab.id
+                  ? "text-gray-900 dark:text-white"
+                  : "text-gray-500 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                  }`}
               >
                 {tab.label}
                 {activeTab === tab.id && (
@@ -355,6 +358,15 @@ export default function ProductDetails() {
               </p>
             </div>
           )}
+        </div>
+
+        {/* AI RECOMMENDED PRODUCTS */}
+        <div className="mt-16">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+            Recommended for You
+          </h2>
+
+          <RecommendedProducts productId={product._id} />
         </div>
 
         {/* =======================

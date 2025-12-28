@@ -1,5 +1,6 @@
 import cloudinary from "../config/cloudinary.js";
 import Product from "../models/Product.model.js";
+import UserActivity from "../models/UserActivity.model.js";
 
 /* ================= CREATE PRODUCT (ADMIN) ================= */
 export const createProduct = async (req, res) => {
@@ -25,7 +26,7 @@ export const createProduct = async (req, res) => {
 
     res.status(201).json(product);
   } catch (error) {
-    console.error(error);
+    console.error("Create Product Error:", error);
     res.status(500).json({ message: "Product creation failed" });
   }
 };
@@ -36,12 +37,12 @@ export const getProducts = async (req, res) => {
     const products = await Product.find().sort({ createdAt: -1 });
     res.json(products);
   } catch (error) {
+    console.error("Get Products Error:", error);
     res.status(500).json({ message: "Failed to fetch products" });
   }
 };
 
-
-/* ================= GET SINGLE PRODUCT ================= */
+/* ================= GET SINGLE PRODUCT (WITH VIEW TRACKING) ================= */
 export const getProductById = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
@@ -50,8 +51,18 @@ export const getProductById = async (req, res) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
+    // ✅ TRACK PRODUCT VIEW (ONLY IF USER LOGGED IN)
+    if (req.user) {
+      await UserActivity.create({
+        userId: req.user._id,
+        productId: product._id,
+        action: "view",
+      });
+    }
+
     res.json(product);
   } catch (error) {
+    console.error("Get Product Error:", error);
     res.status(500).json({ message: "Failed to fetch product" });
   }
 };
@@ -81,6 +92,7 @@ export const updateProduct = async (req, res) => {
     const updatedProduct = await product.save();
     res.json(updatedProduct);
   } catch (error) {
+    console.error("Update Product Error:", error);
     res.status(500).json({ message: "Product update failed" });
   }
 };
@@ -96,6 +108,7 @@ export const deleteProduct = async (req, res) => {
 
     res.json({ message: "Product deleted successfully" });
   } catch (error) {
+    console.error("Delete Product Error:", error);
     res.status(500).json({ message: "Product deletion failed" });
   }
 };
