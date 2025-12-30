@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { API_URL } from "../../utils/api";
 
 export default function AdminDashboard() {
   const { user } = useSelector((state) => state.auth);
@@ -29,7 +30,7 @@ export default function AdminDashboard() {
         const token = localStorage.getItem("token");
         
         const { data } = await axios.get(
-          "http://localhost:5000/api/admin/analytics",
+          `${API_URL}/api/admin/analytics`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

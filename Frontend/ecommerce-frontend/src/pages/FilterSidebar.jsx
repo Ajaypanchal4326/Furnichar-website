@@ -62,6 +62,50 @@ function FilterSidebar({ filters, setFilters, categories }) {
           className="w-full"
         />
       </div>
+      {/* Rating Filter */}
+      <div>
+        <h3 className="text-base lg:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 lg:mb-4">
+          Filter by Rating
+        </h3>
+
+        <div className="space-y-2">
+          {[4, 3, 2, 1].map((rating) => (
+            <label
+              key={rating}
+              className="flex items-center gap-3 cursor-pointer group py-1"
+            >
+              <input
+                type="radio"
+                name="rating"
+                checked={filters.minRating === rating}
+                onChange={() =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    minRating: rating,
+                  }))
+                }
+                className="w-4 h-4 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-gray-900 dark:focus:ring-gray-100 cursor-pointer"
+              />
+              <span className="text-sm text-gray-700 dark:text-gray-300">
+                ⭐ {rating}+ & above
+              </span>
+            </label>
+          ))}
+
+          {/* Clear rating */}
+          {filters.minRating > 0 && (
+            <button
+              onClick={() =>
+                setFilters((prev) => ({ ...prev, minRating: 0 }))
+              }
+              className="text-xs text-gray-500 hover:underline mt-1"
+            >
+              Clear rating
+            </button>
+          )}
+        </div>
+      </div>
+
     </aside>
   );
 }

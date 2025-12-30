@@ -17,15 +17,13 @@ export default function Cart() {
   const totalPrice = subtotal + taxAmount;
 
   const handleIncrement = (item) => {
-    // Check if item has stock property and if we can increment
-    const maxStock = item.stock || 999; // Default to 999 if stock not provided
+    const maxStock = item.stock || 999; 
     if (item.quantity < maxStock) {
       dispatch(updateQuantity({ _id: item._id, quantity: item.quantity + 1 }));
     }
   };
 
   const handleDecrement = (item) => {
-    // Don't go below 1
     if (item.quantity > 1) {
       dispatch(updateQuantity({ _id: item._id, quantity: item.quantity - 1 }));
     }

@@ -32,7 +32,7 @@ const ProductCard = memo(({ product, onEdit, onDelete }) => {
         <h3 className="font-semibold text-gray-800 dark:text-gray-200 text-lg mb-2 line-clamp-2">
           {product.title}
         </h3>
-        
+
         <div className="space-y-2 mb-4">
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-600 dark:text-gray-400">Category:</span>
@@ -40,21 +40,20 @@ const ProductCard = memo(({ product, onEdit, onDelete }) => {
               {product.category || 'Uncategorized'}
             </span>
           </div>
-          
+
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-600 dark:text-gray-400">Price:</span>
             <span className="font-bold text-gray-800 dark:text-gray-200">₹{product.price}</span>
           </div>
-          
+
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-600 dark:text-gray-400">Stock:</span>
-            <span className={`px-2 py-1 rounded text-xs font-medium ${
-              product.stock > 10 
-                ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300' 
-                : product.stock > 0 
-                ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300' 
-                : 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300'
-            }`}>
+            <span className={`px-2 py-1 rounded text-xs font-medium ${product.stock > 10
+                ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300'
+                : product.stock > 0
+                  ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300'
+                  : 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300'
+              }`}>
               {product.stock} units
             </span>
           </div>
@@ -116,13 +115,12 @@ const ProductRow = memo(({ product, onEdit, onDelete }) => {
         <p className="font-semibold text-gray-800 dark:text-gray-200">₹{product.price}</p>
       </td>
       <td className="p-4">
-        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-          product.stock > 10 
-            ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300' 
-            : product.stock > 0 
-            ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300' 
-            : 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300'
-        }`}>
+        <span className={`px-3 py-1 rounded-full text-sm font-medium ${product.stock > 10
+            ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300'
+            : product.stock > 0
+              ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300'
+              : 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300'
+          }`}>
           {product.stock} units
         </span>
       </td>
@@ -185,7 +183,7 @@ export default function AdminProducts() {
   // Memoized filtered products with debouncing effect
   const filteredProducts = useMemo(() => {
     if (!searchTerm.trim()) return products;
-    
+
     const lowerSearch = searchTerm.toLowerCase();
     return products.filter(p =>
       p.title.toLowerCase().includes(lowerSearch) ||
@@ -239,7 +237,7 @@ export default function AdminProducts() {
               {searchTerm ? 'No products found' : 'No products yet'}
             </h3>
             <p className="text-gray-500 dark:text-gray-400">
-              {searchTerm 
+              {searchTerm
                 ? 'Try adjusting your search terms'
                 : 'Start by adding your first product'}
             </p>
@@ -263,8 +261,8 @@ export default function AdminProducts() {
                 </thead>
                 <tbody>
                   {filteredProducts.map((p) => (
-                    <ProductRow 
-                      key={p._id} 
+                    <ProductRow
+                      key={p._id}
                       product={p}
                       onEdit={handleEdit}
                       onDelete={deleteHandler}
@@ -280,8 +278,8 @@ export default function AdminProducts() {
         {!loading && filteredProducts.length > 0 && (
           <div className="lg:hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
             {filteredProducts.map((p) => (
-              <ProductCard 
-                key={p._id} 
+              <ProductCard
+                key={p._id}
                 product={p}
                 onEdit={handleEdit}
                 onDelete={deleteHandler}

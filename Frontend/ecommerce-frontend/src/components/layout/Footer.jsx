@@ -1,7 +1,13 @@
 import { Link } from "react-router-dom";
+import { useState } from "react";
+import axios from "axios";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
+
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const companyLinks = [
     { name: "About", path: "/about" },
@@ -18,17 +24,48 @@ export default function Footer() {
     { name: "Outdoor", path: "/products?category=outdoor" },
   ];
 
+  const handleSubscribe = async () => {
+    if (!email) {
+      setStatus("Please enter a valid email");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setStatus("");
+
+      const res = await axios.post(
+        "http://localhost:5000/api/newsletter/subscribe",
+        { email }
+      );
+
+      setStatus(res.data.message || "Subscribed successfully 🎉");
+      setEmail("");
+    } catch (err) {
+      setStatus(
+        err.response?.data?.message || "Subscription failed"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <footer className="bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 mb-8 sm:mb-12">
+          
           {/* Brand Column */}
           <div className="space-y-4">
-            <Link to="/" className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
+            <Link
+              to="/"
+              className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white tracking-tight"
+            >
               ShopEase
             </Link>
             <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-              Discover elegant and affordable furniture for every room. Transform your home with style.
+              Discover elegant and affordable furniture for every room.
+              Transform your home with style.
             </p>
           </div>
 
@@ -78,12 +115,25 @@ export default function Footer() {
             <div className="space-y-3">
               <input
                 type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="Email"
                 className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-gray-900 dark:focus:border-white transition-colors text-sm"
               />
-              <button className="w-full px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-medium hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors text-sm">
-                Subscribe
+
+              <button
+                onClick={handleSubscribe}
+                disabled={loading}
+                className="w-full px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-medium hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors text-sm disabled:opacity-60"
+              >
+                {loading ? "Subscribing..." : "Subscribe"}
               </button>
+
+              {status && (
+                <p className="text-xs text-green-600 dark:text-green-400">
+                  {status}
+                </p>
+              )}
             </div>
           </div>
         </div>

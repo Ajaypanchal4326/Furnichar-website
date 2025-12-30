@@ -62,7 +62,7 @@ export default function ForgotPassword() {
     }
   };
 
-  // ⏱ Cooldown timer
+  // Cooldown timer
   useEffect(() => {
     if (cooldown === 0) return;
     const timer = setInterval(() => {

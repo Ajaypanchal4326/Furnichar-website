@@ -45,6 +45,16 @@ const FilterSidebar = memo(({ filters, setFilters, categories, onClose }) => {
     [setFilters]
   );
 
+  const handleRatingChange = useCallback(
+    (rating) => {
+      setFilters((prev) => ({
+        ...prev,
+        minRating: prev.minRating === rating ? 0 : rating,
+      }));
+    },
+    [setFilters]
+  );
+
   // Price ranges as checkboxes
   const priceRanges = [
     { label: "Under ₹10,000", value: "0-10000", min: 0, max: 10000 },
@@ -133,6 +143,44 @@ const FilterSidebar = memo(({ filters, setFilters, categories, onClose }) => {
           ))}
         </div>
       </div>
+
+      {/* Rating Filter */}
+      <div>
+        <h3 className="text-base lg:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 lg:mb-4">
+          Filter by Rating
+        </h3>
+        <div className="space-y-2">
+          {[4, 3, 2, 1].map((rating) => (
+            <label
+              key={rating}
+              className="flex items-center gap-3 cursor-pointer group py-1"
+            >
+              <input
+                type="radio"
+                name="rating"
+                checked={filters.minRating === rating}
+                onChange={() => handleRatingChange(rating)}
+                className="w-4 h-4 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-gray-900 dark:focus:ring-gray-100 cursor-pointer"
+              />
+              <span className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100">
+                ⭐ {rating}+ & above
+              </span>
+            </label>
+          ))}
+
+          {/* Clear rating */}
+          {filters.minRating > 0 && (
+            <button
+              onClick={() =>
+                setFilters((prev) => ({ ...prev, minRating: 0 }))
+              }
+              className="text-xs text-gray-500 dark:text-gray-400 hover:underline mt-2 ml-7"
+            >
+              Clear rating
+            </button>
+          )}
+        </div>
+      </div>
     </aside>
   );
 });
@@ -142,14 +190,14 @@ FilterSidebar.displayName = "FilterSidebar";
 /* ---------------- PRODUCT PAGE ---------------- */
 export default function ProductPage() {
   const dispatch = useDispatch();
-  
+
   // Safe state extraction
   const productState = useSelector((state) => state.product);
   const products = Array.isArray(productState?.products)
     ? productState.products
     : Array.isArray(productState)
-    ? productState
-    : [];
+      ? productState
+      : [];
   const status = productState?.status || productState?.loading;
   const error = productState?.error;
 
@@ -157,7 +205,9 @@ export default function ProductPage() {
   const [filters, setFilters] = useState({
     categories: [],
     priceRange: null,
+    minRating: 0,
   });
+
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
   // Fetch products on mount
@@ -212,22 +262,31 @@ export default function ProductPage() {
         }
       }
 
+      // Rating filter
+      if (filters.minRating > 0) {
+        const rating = Number(product.rating || 0);
+        if (rating < filters.minRating) {
+          return false;
+        }
+      }
+
       return true;
     });
-  }, [products, debouncedSearch, filters.categories, filters.priceRange]);
+  }, [products, debouncedSearch, filters.categories, filters.priceRange, filters.minRating]);
 
   // Check if filters are active
   const hasActiveFilters = useMemo(
     () =>
       filters.categories.length > 0 ||
       filters.priceRange !== null ||
+      filters.minRating > 0 ||
       (debouncedSearch && debouncedSearch.length > 0),
-    [filters.categories, filters.priceRange, debouncedSearch]
+    [filters.categories, filters.priceRange, filters.minRating, debouncedSearch]
   );
 
   // Clear filters callback
   const clearFilters = useCallback(() => {
-    setFilters({ categories: [], priceRange: null });
+    setFilters({ categories: [], priceRange: null, minRating: 0 });
     setSearchQuery("");
   }, []);
 
@@ -263,44 +322,42 @@ export default function ProductPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-<div className="sticky top-[56px] sm:top-[64px] z-30 bg-gray-50 dark:bg-gray-900">
+      <div className="sticky top-[56px] sm:top-[64px] z-30 bg-gray-50 dark:bg-gray-900">
+        <div className="border-b border-gray-200 dark:border-gray-700">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100">
+                Products
+              </h1>
 
-  <div className="border-b border-gray-200 dark:border-gray-700">
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100">
-          Products
-        </h1>
+              {/* Search */}
+              <div className="relative w-full sm:w-80 lg:w-96">
+                <svg
+                  className="absolute left-3 lg:left-4 top-1/2 -translate-y-1/2 w-4 h-4 lg:w-5 lg:h-5 text-gray-400 dark:text-gray-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
 
-        {/* Search */}
-        <div className="relative w-full sm:w-80 lg:w-96">
-          <svg
-            className="absolute left-3 lg:left-4 top-1/2 -translate-y-1/2 w-4 h-4 lg:w-5 lg:h-5 text-gray-400 dark:text-gray-500"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
-
-          <input
-            type="text"
-            placeholder="Search products..."
-            value={searchQuery}
-            onChange={handleSearchChange}
-            className="w-full pl-10 lg:pl-11 pr-4 py-2 lg:py-3 text-sm lg:text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-gray-900 dark:focus:ring-gray-100 focus:border-transparent"
-          />
+                <input
+                  type="text"
+                  placeholder="Search products..."
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  className="w-full pl-10 lg:pl-11 pr-4 py-2 lg:py-3 text-sm lg:text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-gray-900 dark:focus:ring-gray-100 focus:border-transparent"
+                />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  </div>
-</div>
-
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-8">
@@ -342,7 +399,10 @@ export default function ProductPage() {
                   Filters
                   {hasActiveFilters && (
                     <span className="flex items-center justify-center w-5 h-5 text-xs bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 rounded-full">
-                      {filters.categories.length + (filters.priceRange ? 1 : 0)}
+                      {filters.categories.length +
+                        (filters.priceRange ? 1 : 0) +
+                        (filters.minRating ? 1 : 0)
+                      }
                     </span>
                   )}
                 </button>

@@ -11,6 +11,7 @@ import adminRoutes from "./routes/admin.routes.js";
 import reviewRoutes from "./routes/review.routes.js"; 
 import recommendRoutes from "./routes/recommend.routes.js";
 import chatRoutes from "./routes/chat.routes.js";
+import newsletterRoutes from "./routes/newsletter.routes.js";
 
 
 const app = express();
@@ -38,6 +39,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/reviews", reviewRoutes); 
 app.use("/api/recommend", recommendRoutes);
 app.use("/api", chatRoutes);
+app.use("/api/newsletter", newsletterRoutes);
 
 
 
