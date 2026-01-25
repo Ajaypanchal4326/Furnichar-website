@@ -24,7 +24,7 @@ export default function Home() {
       try {
         setLoading(true);
 
-        const response = await fetch(`${API_URL}/api/products`);
+        const response = await fetch(`${API_URL}/products`);
         const data = await response.json();
 
         setFeaturedProducts(Array.isArray(data) ? data : data.products || []);
