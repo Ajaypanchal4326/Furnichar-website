@@ -12,14 +12,17 @@ export default function RecommendedProducts({ productId }) {
     if (!productId) return;
 
     axios
-      .get(`http://localhost:5000/api/recommend/${productId}`)
+      .get(
+        `https://ecommerce-ai-rzrj.onrender.com/recommend/${productId}`
+      )
       .then((res) => {
         console.log("AI RECOMMEND RESPONSE:", res.data);
-        setProducts(res.data || []);
+        setProducts(res.data.products || []);
       })
       .catch((err) => console.error("Recommendation error:", err))
       .finally(() => setLoading(false));
   }, [productId]);
+
 
   if (loading) {
     return (

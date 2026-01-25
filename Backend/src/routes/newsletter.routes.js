@@ -8,8 +8,15 @@ router.post("/subscribe", async (req, res) => {
   try {
     const { email } = req.body;
 
+
     if (!email) {
       return res.status(400).json({ message: "Email is required" });
+    }
+
+    //Validate email 
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ message: "Invalid email address" });
     }
 
     const exists = await Newsletter.findOne({ email });
@@ -19,26 +26,32 @@ router.post("/subscribe", async (req, res) => {
 
     await Newsletter.create({ email });
 
-    // Confirmation Email
-    await transporter.sendMail({
-      from: `"ShopEase" <${process.env.EMAIL_USER}>`,
-      to: email,
-      subject: "Welcome to ShopEase Newsletter 🎉",
-      html: `
-        <h2>Welcome to ShopEase!</h2>
-        <p>You’ll now receive:</p>
-        <ul>
-          <li>Exclusive offers</li>
-          <li>New furniture arrivals</li>
-          <li>Order updates</li>
-        </ul>
-      `,
-    });
+    try {
+      await transporter.sendMail({
+        from: `"ShopEase" <${process.env.EMAIL_USER}>`,
+        to: email,
+        subject: "Welcome to ShopEase Newsletter 🎉",
+        html: `
+          <h2>Welcome to ShopEase!</h2>
+          <p>You’ll now receive:</p>
+          <ul>
+            <li>Exclusive offers</li>
+            <li>New furniture arrivals</li>
+            <li>Order updates</li>
+          </ul>
+        `,
+      });
+    } catch (mailError) {
+      
+      console.error("Email sending failed (ignored):", mailError.message);
+    }
 
-    res.status(201).json({ message: "Subscribed successfully" });
+    
+    return res.status(201).json({ message: "Subscribed successfully" });
+
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
+    console.error("Newsletter error:", error);
+    return res.status(500).json({ message: "Server error" });
   }
 });
 

@@ -24,15 +24,28 @@ export default function Footer() {
     { name: "Outdoor", path: "/products?category=outdoor" },
   ];
 
+  // Email validator
+  const isValidEmail = (email) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
   const handleSubscribe = async () => {
+    setStatus("");
+
+    // Empty email
     if (!email) {
+      setStatus("Please enter a valid email");
+      return;
+    }
+
+    // Invalid email
+    if (!isValidEmail(email)) {
       setStatus("Please enter a valid email");
       return;
     }
 
     try {
       setLoading(true);
-      setStatus("");
 
       const res = await axios.post(
         "http://localhost:5000/api/newsletter/subscribe",
@@ -42,9 +55,7 @@ export default function Footer() {
       setStatus(res.data.message || "Subscribed successfully 🎉");
       setEmail("");
     } catch (err) {
-      setStatus(
-        err.response?.data?.message || "Subscription failed"
-      );
+      setStatus(err.response?.data?.message || "Subscription failed");
     } finally {
       setLoading(false);
     }
@@ -54,7 +65,7 @@ export default function Footer() {
     <footer className="bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 mb-8 sm:mb-12">
-          
+
           {/* Brand Column */}
           <div className="space-y-4">
             <Link
@@ -130,7 +141,13 @@ export default function Footer() {
               </button>
 
               {status && (
-                <p className="text-xs text-green-600 dark:text-green-400">
+                <p
+                  className={`text-xs ${
+                    status.includes("valid")
+                      ? "text-red-500"
+                      : "text-green-600 dark:text-green-400"
+                  }`}
+                >
                   {status}
                 </p>
               )}

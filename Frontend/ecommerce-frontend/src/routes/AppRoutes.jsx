@@ -60,15 +60,17 @@ export default function AppRoutes() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/my-orders"
+          element={
+            <ProtectedRoute>
+              <MyOrders />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="*" element={<NotFound />} />
       </Route>
-      <Route
-  path="/my-orders"
-  element={
-    <ProtectedRoute>
-      <MyOrders />
-    </ProtectedRoute>
-  }
-/>
+
 
 
       {/* ================= AUTH ROUTES ================= */}
@@ -93,7 +95,7 @@ export default function AppRoutes() {
       </Route>
 
       {/* ================= 404 ================= */}
-      <Route path="*" element={<NotFound />} />
+      
     </Routes>
   );
 }
