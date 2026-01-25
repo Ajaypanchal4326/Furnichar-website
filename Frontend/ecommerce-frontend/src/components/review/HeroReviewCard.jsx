@@ -10,45 +10,45 @@ export default function HeroReviewCard({ isVisible }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-  const fetchRandomReview = async () => {
-    try {
-      const response = await fetch("/api/reviews/random");
+    const fetchRandomReview = async () => {
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/reviews/random`
+        );
 
-      if (!response.ok) {
-        throw new Error("No reviews found");
+        if (!response.ok) {
+          throw new Error("No reviews found");
+        }
+
+        const data = await response.json();
+        setReview(data);
+      } catch (error) {
+        console.error("Random review fetch failed:", error);
+
+        // FALLBACK REVIEW
+        setReview({
+          _id: "fallback",
+          user: { name: "Ajay Panchal", avatar: null },
+          rating: 5,
+          comment:
+            "Absolutely worth the price. Strong wood quality and elegant minimalist design. Easy to...",
+          product: {
+            _id: null,
+            title: "Modular Modern Kitchen Setup",
+            image:
+              "https://images.unsplash.com/photo-1556911220-bff31c812dba?w=300&q=80",
+            price: 249999,
+            category: "Kitchen Furniture",
+          },
+        });
+      } finally {
+        setLoading(false);
       }
+    };
 
-      const data = await response.json();
-      setReview(data);
-    } catch (error) {
-      console.error("Random review fetch failed:", error);
+    fetchRandomReview();
+  }, []);
 
-      // FALLBACK REVIEW
-      setReview({
-        _id: "fallback",
-        user: {
-          name: "Ajay Panchal",
-          avatar: null,
-        },
-        rating: 5,
-        comment:
-          "Absolutely worth the price. Strong wood quality and elegant minimalist design. Easy to...",
-        product: {
-          _id: null,
-          title: "Modular Modern Kitchen Setup",
-          image:
-            "https://images.unsplash.com/photo-1556911220-bff31c812dba?w=300&q=80",
-          price: 249999,
-          category: "Kitchen Furniture",
-        },
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  fetchRandomReview();
-}, []);
 
 
   // Generate avatar from name initials
@@ -93,9 +93,9 @@ export default function HeroReviewCard({ isVisible }) {
   };
 
   const handleProductClick = () => {
-  if (!review?.product?._id) return;
-  navigate(`/product/${review.product._id}`);
-};
+    if (!review?.product?._id) return;
+    navigate(`/product/${review.product._id}`);
+  };
 
 
   if (loading || !review) {
@@ -108,7 +108,7 @@ export default function HeroReviewCard({ isVisible }) {
   return (
     <div
       onClick={handleProductClick}
-     className="
+      className="
   absolute
   
   /* Mobile: Higher position + more to the right */
