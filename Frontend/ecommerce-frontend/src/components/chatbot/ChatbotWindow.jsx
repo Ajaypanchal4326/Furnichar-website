@@ -14,7 +14,7 @@ function ChatMessage({ role, text }) {
             </svg>
           </div>
         )}
-        
+
         <div
           className={`px-4 py-3 rounded-2xl text-sm leading-relaxed
             ${isUser
@@ -72,11 +72,12 @@ function ChatbotWindow({ onClose }) {
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:5000/api/chat", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: userText, lastIntent })
+        body: JSON.stringify({ message: userText, lastIntent }),
       });
+
 
       const data = await res.json();
 
@@ -128,8 +129,8 @@ function ChatbotWindow({ onClose }) {
             </div>
           </div>
         </div>
-        <button 
-          onClick={onClose} 
+        <button
+          onClick={onClose}
           className="w-8 h-8 rounded-full hover:bg-white/20 dark:hover:bg-black/10 transition flex items-center justify-center"
           aria-label="Close chat"
         >
@@ -250,7 +251,7 @@ export default function ChatbotWidget() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
           </svg>
         )}
-        
+
         {/* Notification badge */}
         {!open && (
           <span className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 border-2 border-white dark:border-black rounded-full text-xs font-bold flex items-center justify-center text-white">

@@ -48,7 +48,7 @@ export default function Footer() {
       setLoading(true);
 
       const res = await axios.post(
-        "http://localhost:5000/api/newsletter/subscribe",
+        `${import.meta.env.VITE_API_URL}/newsletter/subscribe`,
         { email }
       );
 
@@ -142,11 +142,10 @@ export default function Footer() {
 
               {status && (
                 <p
-                  className={`text-xs ${
-                    status.includes("valid")
+                  className={`text-xs ${status.includes("valid")
                       ? "text-red-500"
                       : "text-green-600 dark:text-green-400"
-                  }`}
+                    }`}
                 >
                   {status}
                 </p>
