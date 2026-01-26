@@ -14,7 +14,7 @@ const router = express.Router();
 
 // ================= PUBLIC =================
 router.get("/", getProducts);
-router.get("/:id", protect, getProductById);
+router.get("/:id", getProductById);
 
 
 // ================= ADMIN =================
