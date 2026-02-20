@@ -1,22 +1,21 @@
-import nodemailer from "nodemailer";
-
-const transporter = nodemailer.createTransport({
-  host: "smtp-relay.brevo.com",
-  port: 587,
-  secure: false,
-  auth: {
-    user: process.env.BREVO_USER,
-    pass: process.env.BREVO_PASS,
-  },
-});
+import axios from "axios";
 
 export const sendOtpEmail = async (to, otp) => {
   try {
-    const info = await transporter.sendMail({
-      from: `"ShopEase" <${process.env.EMAIL_USER}>`,
-      to,
-      subject: "Verify your email - OTP",
-      html: `
+    await axios.post(
+      "https://api.brevo.com/v3/smtp/email",
+      {
+        sender: {
+          name: "ShopEase",
+          email: process.env.EMAIL_USER , // ✅ must be verified in Brevo
+        },
+        to: [
+          {
+            email: to,
+          },
+        ],
+        subject: "Verify your email - OTP",
+        htmlContent: `
 <!DOCTYPE html>
 <html>
 <head>
@@ -27,10 +26,9 @@ export const sendOtpEmail = async (to, otp) => {
   <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f6f8;padding:20px 0;">
     <tr>
       <td align="center">
-        <table width="100%" max-width="600" cellpadding="0" cellspacing="0" 
-          style="background:#ffffff;border-radius:10px;overflow:hidden;box-shadow:0 5px 20px rgba(0,0,0,0.05);">
+        <table width="100%" cellpadding="0" cellspacing="0"
+          style="max-width:600px;background:#ffffff;border-radius:10px;overflow:hidden;box-shadow:0 5px 20px rgba(0,0,0,0.05);">
 
-          <!-- Header -->
           <tr>
             <td style="background:linear-gradient(135deg,#0f172a,#1e293b);padding:30px;text-align:center;">
               <h1 style="color:#ffffff;margin:0;font-size:24px;letter-spacing:1px;">
@@ -42,7 +40,6 @@ export const sendOtpEmail = async (to, otp) => {
             </td>
           </tr>
 
-          <!-- Body -->
           <tr>
             <td style="padding:40px 30px;text-align:center;">
               <h2 style="margin:0 0 15px 0;color:#111827;font-size:20px;">
@@ -54,7 +51,6 @@ export const sendOtpEmail = async (to, otp) => {
                 This code is valid for <strong>10 minutes</strong>.
               </p>
 
-              <!-- OTP Box -->
               <div style="
                 display:inline-block;
                 padding:15px 30px;
@@ -75,12 +71,10 @@ export const sendOtpEmail = async (to, otp) => {
             </td>
           </tr>
 
-          <!-- Divider -->
           <tr>
             <td style="border-top:1px solid #e5e7eb;"></td>
           </tr>
 
-          <!-- Footer -->
           <tr>
             <td style="padding:20px 30px;text-align:center;font-size:12px;color:#9ca3af;">
               © ${new Date().getFullYear()} ShopEase. All rights reserved.<br/>
@@ -94,11 +88,20 @@ export const sendOtpEmail = async (to, otp) => {
   </table>
 </body>
 </html>
-`,
-    });
-
+        `,
+      },
+      {
+        headers: {
+          "api-key": process.env.BREVO_API_KEY,
+          "Content-Type": "application/json",
+        },
+      }
+    );
   } catch (error) {
-    console.error("Email sending failed");
+    console.error(
+      "Brevo API Error:",
+      error.response?.data || error.message
+    );
     throw error;
   }
 };
