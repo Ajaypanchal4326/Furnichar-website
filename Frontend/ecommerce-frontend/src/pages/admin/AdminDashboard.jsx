@@ -30,7 +30,7 @@ export default function AdminDashboard() {
         const token = localStorage.getItem("token");
         
         const { data } = await axios.get(
-          `${API_URL}/api/admin/analytics`,
+          `${API_URL}/admin/analytics`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
