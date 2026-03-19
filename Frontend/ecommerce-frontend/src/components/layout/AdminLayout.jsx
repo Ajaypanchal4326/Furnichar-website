@@ -8,15 +8,39 @@ export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isDark, setIsDark] = useState(false);
 
-  // Detect browser theme preference
+  // Keep admin layout synced with app-wide theme class and saved preference.
   useEffect(() => {
-    const darkModeQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    setIsDark(darkModeQuery.matches);
+    const readTheme = () => {
+      const savedTheme = localStorage.getItem("theme");
 
-    const handleChange = (e) => setIsDark(e.matches);
-    darkModeQuery.addEventListener("change", handleChange);
+      if (savedTheme) {
+        return savedTheme === "dark";
+      }
 
-    return () => darkModeQuery.removeEventListener("change", handleChange);
+      return document.documentElement.classList.contains("dark");
+    };
+
+    setIsDark(readTheme());
+
+    const root = document.documentElement;
+    const observer = new MutationObserver(() => {
+      setIsDark(root.classList.contains("dark"));
+    });
+
+    observer.observe(root, { attributes: true, attributeFilter: ["class"] });
+
+    const handleStorage = (event) => {
+      if (event.key === "theme") {
+        setIsDark(event.newValue === "dark");
+      }
+    };
+
+    window.addEventListener("storage", handleStorage);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("storage", handleStorage);
+    };
   }, []);
 
   const toggleSidebar = () => {
