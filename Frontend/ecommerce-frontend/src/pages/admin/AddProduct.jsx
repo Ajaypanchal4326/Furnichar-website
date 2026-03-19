@@ -5,12 +5,14 @@ import {
   resetAdminProduct,
 } from "../../features/admin/adminProductSlice";
 import { Package, DollarSign, Archive, Tag, Upload, X, Image } from "lucide-react";
+import { useToast } from "../../context/ToastContext";
 
 export default function AddProduct() {
   const dispatch = useDispatch();
   const { loading, success, error } = useSelector(
     (state) => state.adminProduct
   );
+  const { showToast } = useToast();
 
   const [form, setForm] = useState({
     title: "",
@@ -107,7 +109,7 @@ export default function AddProduct() {
 
   useEffect(() => {
     if (success) {
-      alert("Product created successfully");
+      showToast("Product created successfully", "success");
       dispatch(resetAdminProduct());
 
       setForm({
@@ -121,7 +123,7 @@ export default function AddProduct() {
       setImagePreview(null);
       setErrors({});
     }
-  }, [success, dispatch]);
+  }, [success, dispatch, showToast]);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 py-8 px-4 sm:px-6 lg:px-8">
