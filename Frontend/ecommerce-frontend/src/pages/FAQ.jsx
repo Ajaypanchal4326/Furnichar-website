@@ -6,19 +6,39 @@ export default function faq() {
   const [theme, setTheme] = useState('light');
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    
-    const handleThemeChange = (e) => {
-      setTheme(e.matches ? 'dark' : 'light');
+    const readTheme = () => {
+      const savedTheme = localStorage.getItem("theme");
+
+      if (savedTheme) {
+        return savedTheme;
+      }
+
+      return document.documentElement.classList.contains("dark")
+        ? "dark"
+        : "light";
     };
 
-    // Set initial theme
-    setTheme(mediaQuery.matches ? 'dark' : 'light');
+    setTheme(readTheme());
 
-    // Listen for theme changes
-    mediaQuery.addEventListener('change', handleThemeChange);
+    const root = document.documentElement;
+    const observer = new MutationObserver(() => {
+      setTheme(root.classList.contains("dark") ? "dark" : "light");
+    });
 
-    return () => mediaQuery.removeEventListener('change', handleThemeChange);
+    observer.observe(root, { attributes: true, attributeFilter: ["class"] });
+
+    const handleStorage = (event) => {
+      if (event.key === "theme") {
+        setTheme(event.newValue === "dark" ? "dark" : "light");
+      }
+    };
+
+    window.addEventListener("storage", handleStorage);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("storage", handleStorage);
+    };
   }, []);
 
   const toggleFAQ = (index) => {
