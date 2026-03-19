@@ -10,10 +10,15 @@ export const addReview = async (req, res) => {
     return res.status(404).json({ message: "Product not found" });
   }
 
-  await Review.findOneAndUpdate(
+  const review = await Review.findOneAndUpdate(
     { product: productId, user: req.user._id },
-    { rating, comment },
-    { upsert: true, new: true }
+    {
+      product: productId,   
+      user: req.user._id,   
+      rating,
+      comment,
+    },
+    { upsert: true, new: true, setDefaultsOnInsert: true }
   );
 
   const reviews = await Review.find({ product: productId });
@@ -25,7 +30,7 @@ export const addReview = async (req, res) => {
   product.numReviews = reviews.length;
   await product.save();
 
-  res.status(201).json({ message: "Review saved" });
+  res.status(201).json(review);
 };
 
 export const getProductReviews = async (req, res) => {
