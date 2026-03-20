@@ -1,10 +1,12 @@
 import { useSelector } from "react-redux";
+import { useToast } from "../context/ToastContext";
 
 export default function Checkout() {
   const { items } = useSelector((state) => state.cart);
+  const { showToast } = useToast();
 
   const comingSoon = () => {
-    alert("🚧 Checkout feature is coming soon!");
+    showToast("Checkout feature is coming soon!", "info");
   };
 
   return (
@@ -78,3 +80,4 @@ export default function Checkout() {
 //     </div>
 //   );
 // }
+

@@ -3,10 +3,12 @@ import { useDispatch, useSelector } from "react-redux";
 import axiosInstance from "../services/axiosInstance";
 import { logout } from "../features/auth/authSlice";
 import { User, Mail, Phone, MapPin, Edit2, Save, X, Package, LogOut } from "lucide-react";
+import { useToast } from "../context/ToastContext";
 
 export default function Profile() {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
+  const { showToast } = useToast();
 
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -87,9 +89,9 @@ export default function Profile() {
       });
       
       setIsEditing(false);
-      alert("Profile updated successfully!");
+      showToast("Profile updated successfully!", "success");
     } catch (error) {
-      alert("Failed to update profile. Please try again.");
+      showToast("Failed to update profile. Please try again.", "error");
     } finally {
       setLoading(false);
     }
