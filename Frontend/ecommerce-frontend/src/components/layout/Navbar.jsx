@@ -285,12 +285,6 @@ export default function Navbar() {
               >
                 My Orders
               </Link>
-              <button
-                onClick={toggleTheme}
-                className="w-full text-left text-sm font-medium px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              >
-                Theme: {theme === "dark" ? "Dark" : "Light"} (Tap to switch)
-              </button>
               {user ? (
                 <Link 
                   to="/profile" 

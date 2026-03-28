@@ -14,15 +14,36 @@ export const getAdminAnalytics = async (req, res) => {
     const totalProducts = await Product.countDocuments();
     const totalOrders = await Order.countDocuments();
 
-    const revenueAgg = await Order.aggregate([
-      { $match: { isPaid: true } },
+    const paidRevenueAgg = await Order.aggregate([
+      {
+        $match: {
+          $or: [
+            { isPaid: true },
+            { paymentStatus: { $in: ["paid", "completed", "success", "successful"] } },
+            { orderStatus: { $in: ["delivered", "completed"] } },
+          ],
+        },
+      },
       { $group: { _id: null, totalRevenue: { $sum: "$totalPrice" } } },
     ]);
 
-    const totalRevenue = revenueAgg[0]?.totalRevenue || 0;
+    let totalRevenue = paidRevenueAgg[0]?.totalRevenue || 0;
+
+    // Fallback for COD-heavy stores where paymentStatus stays "pending"
+    if (!totalRevenue) {
+      const grossRevenueAgg = await Order.aggregate([
+        { $group: { _id: null, totalRevenue: { $sum: "$totalPrice" } } },
+      ]);
+      totalRevenue = grossRevenueAgg[0]?.totalRevenue || 0;
+    }
 
     const totalCustomers = await User.countDocuments({
       role: { $ne: "admin" },
+    });
+
+    const lowStockProducts = await Product.countDocuments({
+      stock: { $lte: 5 },
+      isActive: true,
     });
 
     const recentOrders = await Order.find()
@@ -36,6 +57,7 @@ export const getAdminAnalytics = async (req, res) => {
         totalOrders,
         totalRevenue,
         totalCustomers,
+        lowStockProducts,
       },
       recentOrders,
     });

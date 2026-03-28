@@ -74,10 +74,13 @@ export default function AdminLayout() {
         <AdminSidebar isOpen={sidebarOpen} onClose={toggleSidebar} />
 
         {/* Main Content */}
-        <div style={{ flex: 1 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
           {/* Header */}
           <div
             style={{
+              position: "sticky",
+              top: 0,
+              zIndex: 997,
               padding: "15px 20px",
               backgroundColor: headerBg,
               borderBottom: `1px solid ${headerBorder}`,
@@ -107,7 +110,7 @@ export default function AdminLayout() {
             <h2 style={{ margin: 0, color: textColor }}>Admin Panel</h2>
           </div>
 
-          <div style={{ padding: "20px", backgroundColor: mainBg, minHeight: "calc(100vh - 61px)" }}>
+          <div style={{ padding: "16px", backgroundColor: mainBg, minHeight: "calc(100vh - 61px)" }}>
             <Outlet />
           </div>
         </div>
