@@ -1,10 +1,20 @@
 import express from "express";
 import Newsletter from "../models/Newsletter.js";
 import transporter from "../config/mailer.js";
+import { createRateLimiter } from "../middleware/rateLimit.middleware.js";
 
 const router = express.Router();
+const newsletterRateLimiter = createRateLimiter({
+  windowMs: Number(process.env.NEWSLETTER_RATE_LIMIT_WINDOW_MS) || 60 * 60 * 1000,
+  max: Number(process.env.NEWSLETTER_RATE_LIMIT_MAX) || 5,
+  message: "Too many subscribe attempts. Please try again later.",
+  keyGenerator: (req) => {
+    const email = typeof req.body?.email === "string" ? req.body.email.toLowerCase().trim() : "";
+    return `${email || "anonymous"}::${req.ip}`;
+  },
+});
 
-router.post("/subscribe", async (req, res) => {
+router.post("/subscribe", newsletterRateLimiter, async (req, res) => {
   try {
     const { email } = req.body;
 
