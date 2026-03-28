@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import { API_URL } from "../../utils/api";
+import axiosInstance from "../../services/axiosInstance";
 
 export default function AdminDashboard() {
   const { user } = useSelector((state) => state.auth);
@@ -27,16 +26,11 @@ export default function AdminDashboard() {
 
     const fetchAnalytics = async () => {
       try {
-        const token = localStorage.getItem("token");
-        
-        const { data } = await axios.get(
-          `${API_URL}/admin/analytics`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const { data } = await axiosInstance.get("/admin/analytics");
+
+        if (!data?.stats || !Array.isArray(data?.recentOrders)) {
+          throw new Error("Invalid analytics response");
+        }
 
         setStats(data.stats);
         setRecentOrders(data.recentOrders);
@@ -72,6 +66,14 @@ export default function AdminDashboard() {
       <div className="flex flex-col items-center justify-center min-h-screen w-full bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950 px-4">
         <div className="text-6xl mb-4">⚠</div>
         <p className="text-lg text-red-500 dark:text-red-400 font-medium text-center">{error}</p>
+      </div>
+    );
+  }
+
+  if (!stats) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen w-full bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950 px-4">
+        <p className="text-lg text-red-500 dark:text-red-400 font-medium text-center">Analytics data unavailable</p>
       </div>
     );
   }
