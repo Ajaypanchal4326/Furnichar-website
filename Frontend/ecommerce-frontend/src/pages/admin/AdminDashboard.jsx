@@ -37,6 +37,8 @@ export default function AdminDashboard() {
       } catch (err) {
         console.error("Analytics error:", err);
         if (err.response?.status === 401) {
+          localStorage.removeItem("user");
+          localStorage.removeItem("token");
           setError("Session expired. Please login again.");
           setTimeout(() => navigate("/login"), 2000);
         } else if (err.response?.status === 403) {

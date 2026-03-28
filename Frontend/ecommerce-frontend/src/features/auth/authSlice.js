@@ -1,6 +1,25 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axiosInstance from "../../services/axiosInstance";
 
+const readStoredUser = () => {
+  const token = localStorage.getItem("token");
+  const rawUser = localStorage.getItem("user");
+
+  if (!token || token === "null" || token === "undefined" || !rawUser) {
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    return null;
+  }
+
+  try {
+    return JSON.parse(rawUser);
+  } catch {
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    return null;
+  }
+};
+
 /* ================= REGISTER – SEND OTP ================= */
 export const registerRequest = createAsyncThunk(
   "auth/register-request",
@@ -62,7 +81,7 @@ export const loginUser = createAsyncThunk(
 const authSlice = createSlice({
   name: "auth",
   initialState: {
-    user: JSON.parse(localStorage.getItem("user")) || null,
+    user: readStoredUser(),
     loading: false,
     error: null,
     otpSent: false,
